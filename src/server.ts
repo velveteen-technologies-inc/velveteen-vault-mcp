@@ -3,7 +3,7 @@ import { z } from "zod";
 import { GitHubVault } from "./github";
 import { loadConfig } from "./config";
 import { searchVault, tierOf } from "./search";
-import { parse, stringify, getInsightFrontmatter } from "./frontmatter";
+import { parse, stringify, getInsightFrontmatter, isInsight } from "./frontmatter";
 import { buildInsightFile, loadAllInsights, markSuperseded } from "./insights";
 
 /**
@@ -262,6 +262,67 @@ export function registerTools(server: ToolCapableServer): void {
             text: JSON.stringify({ path: built.path, commit: sha }, null, 2),
           },
         ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "vault_update_insight",
+    {
+      title: "Update insight",
+      description:
+        "Updates frontmatter fields on an existing insight. Use to retire/activate, adjust confidence, or add tags/evidence without creating a new note. Bumps last_updated automatically. Pass only the fields you want to change.",
+      inputSchema: {
+        path: z.string().min(1).describe("e.g. insights/foo.md"),
+        status: z.enum(["draft", "active", "revised", "retired"]).optional(),
+        confidence: z.number().min(0).max(1).optional(),
+        tags: z.array(z.string()).optional().describe("Replaces tags entirely"),
+        add_tags: z.array(z.string()).optional().describe("Appends to existing tags (deduped)"),
+        add_evidence: z.array(z.string()).optional(),
+        body: z.string().optional().describe("Replaces the body content; leave unset to keep existing"),
+      },
+    },
+    async (input) => {
+      const vault = newVault();
+      const file = await vault.readFile(input.path);
+      if (!file) {
+        return {
+          content: [{ type: "text", text: `Not found: ${input.path}` }],
+          isError: true,
+        };
+      }
+      const { data, body } = parse(file.content);
+      if (!isInsight(data)) {
+        return {
+          content: [{ type: "text", text: `Not an insight (no status/confidence frontmatter): ${input.path}` }],
+          isError: true,
+        };
+      }
+
+      if (input.status !== undefined) data.status = input.status;
+      if (input.confidence !== undefined) data.confidence = input.confidence;
+      if (input.tags !== undefined) data.tags = input.tags;
+      if (input.add_tags?.length) {
+        const existing = Array.isArray(data.tags) ? (data.tags as string[]) : [];
+        data.tags = [...new Set([...existing, ...input.add_tags])];
+      }
+      if (input.add_evidence?.length) {
+        const existing = Array.isArray(data.evidence) ? (data.evidence as string[]) : [];
+        data.evidence = [...new Set([...existing, ...input.add_evidence])];
+      }
+      data.last_updated = new Date().toISOString();
+
+      const newBody = input.body !== undefined ? input.body : body;
+      const updated = stringify(data, newBody.endsWith("\n") ? newBody : newBody + "\n");
+
+      vault.queueWrite({
+        path: input.path,
+        content: updated,
+        message: `vault: update insight ${input.path}${input.status ? ` (status=${input.status})` : ""}`,
+      });
+      const sha = await vault.flush();
+      return {
+        content: [{ type: "text", text: JSON.stringify({ path: input.path, commit: sha }, null, 2) }],
       };
     },
   );
