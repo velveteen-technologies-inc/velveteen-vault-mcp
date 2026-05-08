@@ -1,6 +1,7 @@
 import { ulid } from "ulid";
 import type { GitHubVault } from "./github";
 import { getInsightFrontmatter, parse, stringify, isInsight } from "./frontmatter";
+import { loadTierConfig } from "./config";
 
 export interface InsightSummary {
   path: string;
@@ -34,7 +35,8 @@ export function buildInsightFile(input: {
   const id = ulid();
   const now = new Date().toISOString();
   const slug = slugify(input.title) || id.toLowerCase();
-  const path = `insights/${slug}.md`;
+  const tier = loadTierConfig().insightsTier;
+  const path = `${tier}/${slug}.md`;
   const body = stringify(
     {
       id,
@@ -53,9 +55,12 @@ export function buildInsightFile(input: {
 }
 
 export async function loadAllInsights(vault: GitHubVault): Promise<InsightSummary[]> {
+  const tier = loadTierConfig().insightsTier;
+  const prefix = `${tier}/`;
+  const readme = `${tier}/README.md`;
   const files = await vault.listAllFiles();
   const insightFiles = files.filter(
-    (f) => f.path.startsWith("insights/") && f.path.endsWith(".md") && f.path !== "insights/README.md",
+    (f) => f.path.startsWith(prefix) && f.path.endsWith(".md") && f.path !== readme,
   );
   const summaries: InsightSummary[] = [];
   const concurrency = 20;

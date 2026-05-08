@@ -6,15 +6,12 @@ import { listVaultFiles, groupByTier } from "../../src/viewer-data";
 
 export const dynamic = "force-dynamic";
 
-const TIER_LABELS: Record<string, string> = {
-  insights: "Insights",
-  wiki: "Wiki",
-  projects: "Projects",
-  people: "People",
-  "daily-notes": "Daily notes",
-  raw: "Raw",
-  other: "Other",
-};
+function labelTier(tier: string): string {
+  return tier
+    .split(/[-_]/)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
 
 export default async function ViewerHome() {
   const jar = await cookies();
@@ -37,7 +34,7 @@ export default async function ViewerHome() {
         entries.length === 0 ? null : (
           <section key={tier} style={{ marginBottom: "2rem" }}>
             <h2 style={{ fontSize: "1rem", color: "#666", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              {TIER_LABELS[tier] ?? tier} ({entries.length})
+              {labelTier(tier)} ({entries.length})
             </h2>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {entries.map((f) => (

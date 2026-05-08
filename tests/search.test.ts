@@ -48,7 +48,7 @@ describe("makeSnippet", () => {
 });
 
 describe("tierOf", () => {
-  it("classifies known prefixes", () => {
+  it("classifies known prefixes (default config)", () => {
     expect(tierOf("insights/x.md")).toBe("insights");
     expect(tierOf("wiki/foo/bar.md")).toBe("wiki");
     expect(tierOf("raw/y.md")).toBe("raw");
@@ -57,7 +57,20 @@ describe("tierOf", () => {
     expect(tierOf("projects/p.md")).toBe("projects");
   });
 
-  it("falls back to other", () => {
+  it("falls back to other for unknown tier", () => {
     expect(tierOf("config/creators.yml")).toBe("other");
+  });
+
+  it("respects VAULT_TIERS override", () => {
+    const original = process.env.VAULT_TIERS;
+    process.env.VAULT_TIERS = "claims,sources";
+    try {
+      expect(tierOf("claims/x.md")).toBe("claims");
+      expect(tierOf("sources/y.md")).toBe("sources");
+      expect(tierOf("insights/z.md")).toBe("other");
+    } finally {
+      if (original === undefined) delete process.env.VAULT_TIERS;
+      else process.env.VAULT_TIERS = original;
+    }
   });
 });

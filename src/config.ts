@@ -7,6 +7,30 @@ export interface VaultConfig {
   commitAuthor: { name: string; email: string } | null;
 }
 
+export interface TierConfig {
+  /** Ordered tiers (highest priority first) used for search ranking and viewer grouping. */
+  tiers: string[];
+  /** Folder where MCP-written insights land. Must be one of `tiers`. */
+  insightsTier: string;
+  /** Folder where session logs append. Must be one of `tiers`. */
+  sessionTier: string;
+  /** Optional human label per tier (defaults to titlecased folder name). */
+  labels: Record<string, string>;
+}
+
+const DEFAULT_TIERS = ["insights", "wiki", "projects", "people", "daily-notes", "raw"];
+
+export function loadTierConfig(): TierConfig {
+  const raw = process.env.VAULT_TIERS;
+  const tiers = raw
+    ? raw.split(",").map((t) => t.trim()).filter(Boolean)
+    : DEFAULT_TIERS;
+  const insightsTier = process.env.VAULT_INSIGHTS_TIER || (tiers.includes("insights") ? "insights" : tiers[0]!);
+  const sessionTier = process.env.VAULT_SESSION_TIER || (tiers.includes("raw") ? "raw" : tiers[tiers.length - 1]!);
+  const labels: Record<string, string> = {};
+  return { tiers, insightsTier, sessionTier, labels };
+}
+
 export function loadConfig(): VaultConfig {
   const owner = required("VAULT_OWNER");
   const repo = required("VAULT_REPO");

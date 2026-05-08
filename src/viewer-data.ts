@@ -1,5 +1,5 @@
 import { GitHubVault } from "./github";
-import { loadConfig } from "./config";
+import { loadConfig, loadTierConfig } from "./config";
 import { tierOf, type Tier } from "./search";
 
 export interface FileEntry {
@@ -7,7 +7,9 @@ export interface FileEntry {
   tier: Tier;
 }
 
-const TIER_ORDER: Tier[] = ["insights", "wiki", "projects", "people", "daily-notes", "raw", "other"];
+function tierOrder(): string[] {
+  return [...loadTierConfig().tiers, "other"];
+}
 
 export async function listVaultFiles(): Promise<FileEntry[]> {
   const vault = new GitHubVault(loadConfig());
@@ -18,10 +20,14 @@ export async function listVaultFiles(): Promise<FileEntry[]> {
 }
 
 export function groupByTier(files: FileEntry[]): Record<Tier, FileEntry[]> {
+  const order = tierOrder();
   const grouped = {} as Record<Tier, FileEntry[]>;
-  for (const t of TIER_ORDER) grouped[t] = [];
-  for (const f of files) grouped[f.tier].push(f);
-  for (const t of TIER_ORDER) grouped[t].sort((a, b) => a.path.localeCompare(b.path));
+  for (const t of order) grouped[t] = [];
+  for (const f of files) {
+    if (!grouped[f.tier]) grouped[f.tier] = [];
+    grouped[f.tier]!.push(f);
+  }
+  for (const t of Object.keys(grouped)) grouped[t]!.sort((a, b) => a.path.localeCompare(b.path));
   return grouped;
 }
 

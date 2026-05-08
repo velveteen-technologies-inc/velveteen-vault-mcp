@@ -1,32 +1,33 @@
 import type { GitHubVault } from "./github";
+import { loadTierConfig } from "./config";
 
 export interface SearchHit {
   path: string;
   score: number;
   snippet: string;
-  tier: Tier;
+  tier: string;
 }
 
-export type Tier = "insights" | "wiki" | "projects" | "people" | "daily-notes" | "raw" | "other";
-
-const TIER_PRIORITY: Record<Tier, number> = {
-  insights: 6,
-  wiki: 5,
-  projects: 4,
-  people: 3,
-  "daily-notes": 2,
-  raw: 1,
-  other: 0,
-};
+/**
+ * Tier name as a string. Values come from VAULT_TIERS env var (or defaults
+ * insights/wiki/projects/people/daily-notes/raw). The literal "other" is
+ * reserved for files that don't match any configured tier.
+ */
+export type Tier = string;
 
 export function tierOf(path: string): Tier {
-  if (path.startsWith("insights/")) return "insights";
-  if (path.startsWith("wiki/")) return "wiki";
-  if (path.startsWith("projects/")) return "projects";
-  if (path.startsWith("people/")) return "people";
-  if (path.startsWith("daily-notes/")) return "daily-notes";
-  if (path.startsWith("raw/")) return "raw";
+  const { tiers } = loadTierConfig();
+  for (const tier of tiers) {
+    if (path.startsWith(`${tier}/`)) return tier;
+  }
   return "other";
+}
+
+function tierPriority(tier: string): number {
+  const { tiers } = loadTierConfig();
+  const idx = tiers.indexOf(tier);
+  if (idx === -1) return -1; // "other" lowest
+  return tiers.length - idx;
 }
 
 /**
@@ -65,7 +66,7 @@ export async function searchVault(
   }
 
   hits.sort((a, b) => {
-    const tierDiff = TIER_PRIORITY[b.tier] - TIER_PRIORITY[a.tier];
+    const tierDiff = tierPriority(b.tier) - tierPriority(a.tier);
     if (tierDiff !== 0) return tierDiff;
     return b.score - a.score;
   });

@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { GitHubVault } from "./github";
-import { loadConfig } from "./config";
+import { loadConfig, loadTierConfig } from "./config";
 import { searchVault, tierOf } from "./search";
 import { parse, stringify, getInsightFrontmatter, isInsight } from "./frontmatter";
 import { buildInsightFile, loadAllInsights, markSuperseded } from "./insights";
@@ -342,7 +342,8 @@ export function registerTools(server: ToolCapableServer): void {
     },
     async ({ date, summary, topics_discussed, insights_created }) => {
       const vault = newVault();
-      const path = `raw/sessions/${date}.md`;
+      const sessionTier = loadTierConfig().sessionTier;
+      const path = `${sessionTier}/sessions/${date}.md`;
       const existing = await vault.readFile(path);
       const ts = new Date().toISOString();
       const block = [
