@@ -19,6 +19,11 @@ export function loadConfig(): VaultConfig {
   return { owner, repo, branch, githubToken, bearerToken, commitAuthor };
 }
 
+/** Bearer-only config used by the auth layer; doesn't require GITHUB_TOKEN to be set. */
+export function loadAuthConfig(): { bearerToken: string } {
+  return { bearerToken: required("MCP_BEARER_TOKEN") };
+}
+
 function required(key: string): string {
   const v = process.env[key];
   if (!v) throw new Error(`Missing required env var: ${key}`);

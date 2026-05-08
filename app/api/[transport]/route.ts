@@ -1,6 +1,6 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "../../../src/server";
-import { loadConfig } from "../../../src/config";
+import { loadAuthConfig } from "../../../src/config";
 
 export const maxDuration = 60;
 
@@ -16,7 +16,7 @@ const authedHandler = withMcpAuth(
   handler,
   async (_req, bearerToken) => {
     if (!bearerToken) return undefined;
-    const expected = loadConfig().bearerToken;
+    const expected = loadAuthConfig().bearerToken;
     if (bearerToken !== expected) return undefined;
     return {
       token: bearerToken,
