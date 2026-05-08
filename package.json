@@ -1,0 +1,29 @@
+{
+  "name": "velveteen-vault-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for a GitHub-backed Obsidian vault. Read, search, and write notes from Claude.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@octokit/rest": "^21.0.2",
+    "gray-matter": "^4.0.3",
+    "mcp-handler": "^1.0.0",
+    "ulid": "^2.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
