@@ -1,30 +1,20 @@
-import { createMcpHandler, withMcpAuth } from "mcp-handler";
-import { registerTools } from "../../../src/server";
-import { loadConfig } from "../../../src/config";
-
-export const maxDuration = 60;
+import { createMcpHandler } from "mcp-handler";
+import { z } from "zod";
 
 const handler = createMcpHandler(
   (server) => {
-    registerTools(server);
+    server.registerTool(
+      "ping",
+      {
+        title: "Ping",
+        description: "Returns pong.",
+        inputSchema: { msg: z.string().default("hello") },
+      },
+      async ({ msg }) => ({ content: [{ type: "text", text: `pong: ${msg}` }] }),
+    );
   },
   {},
   { basePath: "/api" },
 );
 
-const authedHandler = withMcpAuth(
-  handler,
-  async (_req, bearerToken) => {
-    if (!bearerToken) return undefined;
-    const expected = loadConfig().bearerToken;
-    if (bearerToken !== expected) return undefined;
-    return {
-      token: bearerToken,
-      clientId: "single-user",
-      scopes: ["vault:read", "vault:write"],
-    };
-  },
-  { required: true },
-);
-
-export { authedHandler as GET, authedHandler as POST };
+export { handler as GET, handler as POST };
