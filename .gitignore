@@ -10,3 +10,4 @@ dist/
 .env.production
 .env.development
 .env.local
+tsconfig.tsbuildinfo
