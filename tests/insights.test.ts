@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { slugify, buildInsightFile, markSuperseded } from "../src/insights.js";
-import { parse } from "../src/frontmatter.js";
+import { slugify, buildInsightFile, markSuperseded } from "../src/insights";
+import { parse } from "../src/frontmatter";
 
 describe("slugify", () => {
   it("normalizes spaces and punctuation", () => {

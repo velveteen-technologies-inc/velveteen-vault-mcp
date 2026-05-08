@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { wikilinkTarget, appendUnderHeading } from "../src/server.js";
+import { wikilinkTarget, appendUnderHeading } from "../src/server";
 
 describe("wikilinkTarget", () => {
   it("strips path and .md", () => {

@@ -1,4 +1,4 @@
-import type { GitHubVault } from "./github.js";
+import type { GitHubVault } from "./github";
 
 export interface SearchHit {
   path: string;

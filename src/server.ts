@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { GitHubVault } from "./github.js";
-import { loadConfig } from "./config.js";
-import { searchVault, tierOf } from "./search.js";
-import { parse, stringify, getInsightFrontmatter } from "./frontmatter.js";
-import { buildInsightFile, loadAllInsights, markSuperseded } from "./insights.js";
+import { GitHubVault } from "./github";
+import { loadConfig } from "./config";
+import { searchVault, tierOf } from "./search";
+import { parse, stringify, getInsightFrontmatter } from "./frontmatter";
+import { buildInsightFile, loadAllInsights, markSuperseded } from "./insights";
 
 /**
  * Builds a standalone MCP server (for stdio transport / local testing).

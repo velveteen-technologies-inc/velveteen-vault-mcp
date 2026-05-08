@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parse, stringify, isInsight, getInsightFrontmatter } from "../src/frontmatter.js";
+import { parse, stringify, isInsight, getInsightFrontmatter } from "../src/frontmatter";
 
 describe("frontmatter", () => {
   it("round-trips frontmatter and body", () => {

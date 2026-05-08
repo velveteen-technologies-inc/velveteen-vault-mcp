@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/rest";
-import type { VaultConfig } from "./config.js";
+import type { VaultConfig } from "./config";
 
 export interface VaultFile {
   path: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tokenize, scoreContent, makeSnippet, tierOf } from "../src/search.js";
+import { tokenize, scoreContent, makeSnippet, tierOf } from "../src/search";
 
 describe("tokenize", () => {
   it("lowercases and splits on non-alphanumerics", () => {

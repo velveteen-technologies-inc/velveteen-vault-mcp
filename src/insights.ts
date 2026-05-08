@@ -1,6 +1,6 @@
 import { ulid } from "ulid";
-import type { GitHubVault } from "./github.js";
-import { getInsightFrontmatter, parse, stringify, isInsight } from "./frontmatter.js";
+import type { GitHubVault } from "./github";
+import { getInsightFrontmatter, parse, stringify, isInsight } from "./frontmatter";
 
 export interface InsightSummary {
   path: string;
