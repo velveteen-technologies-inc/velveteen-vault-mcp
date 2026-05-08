@@ -3,7 +3,6 @@ import { registerTools } from "../../../src/server";
 import { loadConfig } from "../../../src/config";
 
 export const maxDuration = 60;
-export const runtime = "nodejs";
 
 const handler = createMcpHandler(
   (server) => {
@@ -28,4 +27,4 @@ const authedHandler = withMcpAuth(
   { required: true },
 );
 
-export { authedHandler as GET, authedHandler as POST, authedHandler as DELETE };
+export { authedHandler as GET, authedHandler as POST };
