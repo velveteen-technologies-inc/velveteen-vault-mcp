@@ -1,8 +1,10 @@
 # velveteen-vault-mcp
 
-A remote MCP server that connects Claude (Desktop, mobile, or any MCP client) to a GitHub-backed Obsidian vault. Designed for "talk to your second brain" use — Claude searches, reads, and writes notes during conversations, with every write becoming a git commit.
+A remote MCP server that connects Claude (Desktop, mobile, or any MCP client) to a GitHub-backed markdown second brain. Designed for "talk to your second brain" use — Claude searches, reads, and writes notes during conversations, with every write becoming a git commit.
 
-Built for [Velveteen Technologies](https://velveteen.tech), released MIT for anyone who wants the same setup.
+Includes a read-only web viewer at `/viewer` so you can browse the vault on any device without an editor app.
+
+Built for [Velveteen Technologies](https://velveteen.tech), released MIT for anyone who wants the same setup. The vault is plain markdown — Obsidian compatible if you want to use it, but Obsidian (or any specific editor) is not required.
 
 ## What it does
 
@@ -26,7 +28,7 @@ All writes go through the GitHub API as commits — `git log` is your audit trai
 
 ## Vault structure
 
-The server expects an Obsidian vault organized into tiers. Adapt to your own conventions; the tier prefixes are what's hardcoded:
+The server expects a markdown vault organized into tiers. Adapt to your own conventions; the tier prefixes are what's hardcoded:
 
 ```
 vault/

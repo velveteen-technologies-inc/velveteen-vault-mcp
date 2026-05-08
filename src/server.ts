@@ -378,9 +378,9 @@ export function registerTools(server: ToolCapableServer): void {
   server.registerTool(
     "vault_link",
     {
-      title: "Add wikilink",
+      title: "Add link",
       description:
-        "Adds a [[wikilink]] from one note to another, optionally with a sentence of context. Appended under a 'Related' section.",
+        "Adds a markdown link from one note to another, optionally with a sentence of context. Appended under a 'Related' section. The link uses the to_path's filename as the visible label.",
       inputSchema: {
         from_path: z.string().min(1),
         to_path: z.string().min(1),
@@ -396,8 +396,11 @@ export function registerTools(server: ToolCapableServer): void {
           isError: true,
         };
       }
-      const target = wikilinkTarget(to_path);
-      const linkLine = context ? `- [[${target}]] — ${context}` : `- [[${target}]]`;
+      const label = linkLabel(to_path);
+      const relPath = relativeMarkdownPath(from_path, to_path);
+      const linkLine = context
+        ? `- [${label}](${relPath}) — ${context}`
+        : `- [${label}](${relPath})`;
       const updated = appendUnderHeading(file.content, "Related", linkLine);
 
       // Also bump frontmatter last_updated if it's an insight
@@ -425,6 +428,26 @@ export function registerTools(server: ToolCapableServer): void {
 export function wikilinkTarget(path: string): string {
   const stem = path.replace(/^.*\//, "").replace(/\.md$/, "");
   return stem;
+}
+
+export function linkLabel(path: string): string {
+  return path.replace(/^.*\//, "").replace(/\.md$/, "");
+}
+
+/**
+ * Relative markdown path from `fromPath`'s directory to `toPath`. Both inputs
+ * are vault-rooted (e.g. "wiki/foo/bar.md"). Output is suitable for a markdown
+ * link: e.g. "../insights/baz.md" or "./sibling.md".
+ */
+export function relativeMarkdownPath(fromPath: string, toPath: string): string {
+  const fromDir = fromPath.split("/").slice(0, -1);
+  const toParts = toPath.split("/");
+  let i = 0;
+  while (i < fromDir.length && i < toParts.length - 1 && fromDir[i] === toParts[i]) i++;
+  const upHops = fromDir.length - i;
+  const downParts = toParts.slice(i);
+  const prefix = upHops === 0 ? "./" : "../".repeat(upHops);
+  return prefix + downParts.join("/");
 }
 
 export function appendUnderHeading(content: string, heading: string, line: string): string {
