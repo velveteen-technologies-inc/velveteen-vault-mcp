@@ -18,7 +18,16 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/[transport]",
+      "regex": "^/api/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtransport": "nxtPtransport"
+      },
+      "namedRegex": "^/api/(?<nxtPtransport>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "functions": {
-    "/api/mcp": {
+    "/api/[transport]": {
       "maxDuration": 60
     }
   }
