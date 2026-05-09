@@ -38,6 +38,26 @@ export function registerTools(server: ToolCapableServer): void {
   // ------------------------------------------------------------------
 
   server.registerTool(
+    "vault_read_schema",
+    {
+      title: "Read vault conventions",
+      description:
+        "Returns the vault's conventions document (CLAUDE.md at the vault root). **Call this at the start of any vault session before any other tool** so you understand the tier model, page types, frontmatter, link conventions, and established workflows like /wiki synthesis. Cheap (single fetch). Skip only if you've already read it in this conversation. Without this, you're inferring conventions from tool descriptions, which is partial.",
+      inputSchema: {},
+    },
+    async () => {
+      const file = await newVault().readFile("CLAUDE.md");
+      if (!file) {
+        return {
+          content: [{ type: "text", text: "No CLAUDE.md at vault root." }],
+          isError: true,
+        };
+      }
+      return { content: [{ type: "text", text: file.content }] };
+    },
+  );
+
+  server.registerTool(
     "vault_search",
     {
       title: "Search vault",
@@ -386,8 +406,10 @@ export function registerTools(server: ToolCapableServer): void {
       inputSchema: {
         source_url: z.string().url().describe("The URL to ingest"),
         kind: z
-          .enum(["youtube", "article", "image", "podcast", "pdf"])
-          .describe("Source type — determines which worker handler runs"),
+          .enum(["youtube", "article"])
+          .describe(
+            "Source type — determines which worker handler runs. Currently supported: youtube, article. (image/podcast/pdf handlers not yet built.)",
+          ),
         hint: z
           .string()
           .optional()
