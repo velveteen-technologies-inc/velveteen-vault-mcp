@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
 import { GitHubVault } from "./github";
 import { loadConfig, loadTierConfig } from "./config";
 import { searchVault, tierOf } from "./search";
@@ -372,6 +373,66 @@ export function registerTools(server: ToolCapableServer): void {
       const sha = await vault.flush();
       return {
         content: [{ type: "text", text: JSON.stringify({ path, commit: sha }, null, 2) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "vault_queue_ingestion",
+    {
+      title: "Queue async ingestion",
+      description:
+        "Queues a long-running ingestion job (YouTube, web article, podcast, image, PDF). Returns the queue row id immediately. A separate local worker picks up the job, processes it, and writes results back to the vault as a normal commit. Use this for any source the user wants captured into the vault that requires download/transcription/scraping.",
+      inputSchema: {
+        source_url: z.string().url().describe("The URL to ingest"),
+        kind: z
+          .enum(["youtube", "article", "image", "podcast", "pdf"])
+          .describe("Source type — determines which worker handler runs"),
+        hint: z
+          .string()
+          .optional()
+          .describe(
+            "Optional guidance for the summarizer, e.g. 'focus on the section about X' or 'I care about Y'",
+          ),
+      },
+    },
+    async ({ source_url, kind, hint }) => {
+      const url = process.env.VAULT_QUEUE_SUPABASE_URL;
+      const key = process.env.VAULT_QUEUE_SUPABASE_KEY;
+      if (!url || !key) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Queue not configured (missing VAULT_QUEUE_SUPABASE_URL or VAULT_QUEUE_SUPABASE_KEY env)",
+            },
+          ],
+          isError: true,
+        };
+      }
+      const supabase = createClient(url, key, { auth: { persistSession: false } });
+      const { data, error } = await supabase
+        .from("vault_ingestion_queue")
+        .insert({ source_url, kind, hint: hint ?? null })
+        .select("id, created_at")
+        .single();
+      if (error) {
+        return {
+          content: [{ type: "text", text: `Queue insert failed: ${error.message}` }],
+          isError: true,
+        };
+      }
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { id: data.id, queued_at: data.created_at, kind, source_url },
+              null,
+              2,
+            ),
+          },
+        ],
       };
     },
   );

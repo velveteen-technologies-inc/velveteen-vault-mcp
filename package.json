@@ -14,6 +14,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@octokit/rest": "^21.0.2",
+    "@supabase/supabase-js": "^2.105.4",
     "gray-matter": "^4.0.3",
     "isomorphic-dompurify": "^3.12.0",
     "jose": "^6.2.3",
