@@ -438,6 +438,61 @@ export function registerTools(server: ToolCapableServer): void {
   );
 
   server.registerTool(
+    "vault_ingestion_status",
+    {
+      title: "Ingestion queue status",
+      description:
+        "Polls the Supabase ingestion queue. With job_id, returns that single row. Without, returns the most recent N jobs across all statuses. Use when the user wants to know if a queued YouTube/article/etc. has finished processing yet.",
+      inputSchema: {
+        job_id: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(50).default(10),
+        status: z
+          .enum(["pending", "processing", "done", "failed"])
+          .optional()
+          .describe("Filter to one status (only applies when job_id is not set)"),
+      },
+    },
+    async ({ job_id, limit, status }) => {
+      const url = process.env.VAULT_QUEUE_SUPABASE_URL;
+      const key = process.env.VAULT_QUEUE_SUPABASE_KEY;
+      if (!url || !key) {
+        return {
+          content: [{ type: "text", text: "Queue not configured" }],
+          isError: true,
+        };
+      }
+      const supabase = createClient(url, key, { auth: { persistSession: false } });
+
+      if (job_id) {
+        const { data, error } = await supabase
+          .from("vault_ingestion_queue")
+          .select("*")
+          .eq("id", job_id)
+          .maybeSingle();
+        if (error) {
+          return { content: [{ type: "text", text: `Query failed: ${error.message}` }], isError: true };
+        }
+        if (!data) {
+          return { content: [{ type: "text", text: `No job with id ${job_id}` }], isError: true };
+        }
+        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+      }
+
+      let q = supabase
+        .from("vault_ingestion_queue")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (status) q = q.eq("status", status);
+      const { data, error } = await q;
+      if (error) {
+        return { content: [{ type: "text", text: `Query failed: ${error.message}` }], isError: true };
+      }
+      return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    },
+  );
+
+  server.registerTool(
     "vault_link",
     {
       title: "Add link",
